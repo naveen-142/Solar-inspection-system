@@ -1,77 +1,109 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Sun, Menu, X, Facebook, Twitter, Linkedin, Github, Mail, MapPin, Phone } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Facebook, Twitter, Linkedin, Github, LogOut, User, ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
+import { useAuth } from '../context/AuthContext';
+import appLogo from '../assets/icon.png';
 
 const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const location = useLocation();
+    const { user, userData, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (error) {
+            console.error('Failed to log out', error);
+        }
+    };
 
     const navLinks = [
         { name: 'Home', path: '/' },
-        { name: 'Learn', path: '/learn' },
-        { name: 'Inspect', path: '/inspection' },
-        { name: 'FAQ', path: '/faq' },
-        { name: 'Contact', path: '/contact' },
+        { name: 'AboutUs', path: '/about' },
+        { name: 'OurAi', path: '/inspection' },
+        { name: 'ContactUs', path: '/contact' },
     ];
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-900 text-gray-100 overflow-x-hidden font-sans">
-            {/* Navigation */}
-            <nav className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+        <div className="flex flex-col min-h-screen font-sans text-gray-900">
+            {/* Navigation - BLACK Background */}
+            <nav className="fixed w-full z-50 transition-all duration-300 bg-black shadow-lg border-b border-gray-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
+                    <div className="flex justify-between items-center h-20">
                         {/* Logo */}
                         <div className="flex items-center">
-                            <Link to="/" className="flex items-center space-x-2 group">
-                                <div className="p-2 bg-primary-500/10 rounded-xl group-hover:bg-primary-500/20 transition-all">
-                                    <Sun className="w-8 h-8 text-primary-400" />
-                                </div>
-                                <span className="text-2xl font-black tracking-tighter bg-gradient-to-r from-primary-400 to-blue-400 bg-clip-text text-transparent">
-                                    SOLARAI
+                            <Link to="/" className="flex items-center space-x-3">
+                                <img src={appLogo} alt="SolarAI Logo" className="w-10 h-10 object-contain" />
+                                <span className="text-2xl font-black tracking-tighter text-white">
+                                    SolarAI
                                 </span>
                             </Link>
                         </div>
 
                         {/* Desktop Menu */}
                         <div className="hidden md:block">
-                            <div className="flex items-center space-x-1">
+                            <div className="flex items-center space-x-6">
                                 {navLinks.map((link) => (
                                     <Link
                                         key={link.name}
                                         to={link.path}
                                         className={clsx(
-                                            'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 relative group',
+                                            'text-sm font-bold uppercase tracking-wider hover:text-blue-600 transition-colors',
                                             location.pathname === link.path
-                                                ? 'text-primary-400 bg-primary-400/5'
-                                                : 'text-gray-400 hover:text-white'
+                                                ? 'text-blue-600'
+                                                : 'text-gray-600'
                                         )}
                                     >
                                         {link.name}
-                                        {location.pathname === link.path && (
-                                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-400 rounded-full" />
-                                        )}
                                     </Link>
                                 ))}
-                                <div className="h-6 w-px bg-slate-700 mx-4" />
-                                {/* <button className="px-5 py-2.5 text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl border border-slate-700 transition-all">
-                                    Login
-                                </button> */}
-                                <Link
-                                    to="/inspection/start"
-                                    className="px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 rounded-xl shadow-lg shadow-primary-500/20 hover:scale-105 transition-all active:scale-95"
-                                >
-                                    Get Started
-                                </Link>
+
+                                {user ? (
+                                    <div className="relative ml-4">
+                                        <button
+                                            onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                            className="flex items-center space-x-2 text-sm font-bold text-gray-700 hover:text-blue-600"
+                                        >
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                                                <User className="w-4 h-4" />
+                                            </div>
+                                            <span>{userData?.name || user.email.split('@')[0]}</span>
+                                            <ChevronDown className="w-4 h-4" />
+                                        </button>
+
+                                        {isProfileOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setIsProfileOpen(false)} />
+                                                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl z-20 py-2">
+                                                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600">My Profile</Link>
+                                                    <button
+                                                        onClick={() => { handleLogout(); setIsProfileOpen(false); }}
+                                                        className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
+                                                    >
+                                                        Sign Out
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center space-x-3 ml-4">
+                                        <Link to="/login" className="text-sm font-bold text-gray-600 hover:text-blue-600">Log In</Link>
+                                        <Link to="/signup" className="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-lg shadow-blue-200">
+                                            Sign Up
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
                         {/* Mobile Toggle */}
                         <div className="md:hidden">
-                            <button
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
-                            >
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600 p-2">
                                 {isMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
                             </button>
                         </div>
@@ -80,128 +112,79 @@ const Layout = () => {
 
                 {/* Mobile Menu */}
                 {isMenuOpen && (
-                    <div className="md:hidden bg-slate-900 border-b border-slate-800 animate-in slide-in-from-top-4 duration-300">
-                        <div className="px-4 pt-2 pb-6 space-y-2">
+                    <div className="md:hidden bg-white border-t border-gray-100">
+                        <div className="px-4 py-4 space-y-2">
                             {navLinks.map((link) => (
                                 <Link
                                     key={link.name}
                                     to={link.path}
-                                    className={clsx(
-                                        "block px-4 py-3 rounded-xl text-base font-bold transition-colors",
-                                        location.pathname === link.path
-                                            ? "bg-primary-500/10 text-primary-400 border border-primary-500/20"
-                                            : "text-gray-400 hover:text-white hover:bg-slate-800"
-                                    )}
+                                    className="block px-4 py-3 rounded-lg text-base font-bold text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     {link.name}
                                 </Link>
                             ))}
-                            <Link
-                                to="/inspection/start"
-                                className="block w-full text-center px-4 py-4 rounded-xl text-base font-bold bg-primary-600 text-white shadow-xl shadow-primary-500/20"
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                Start Inspection
-                            </Link>
+                            <div className="pt-4 border-t border-gray-100">
+                                {user ? (
+                                    <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-red-500 font-bold hover:bg-red-50 rounded-lg">
+                                        Sign Out
+                                    </button>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Link to="/login" className="block w-full px-4 py-3 text-center text-gray-700 font-bold border rounded-lg" onClick={() => setIsMenuOpen(false)}>Log In</Link>
+                                        <Link to="/signup" className="block w-full px-4 py-3 text-center text-white bg-blue-600 font-bold rounded-lg" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
             </nav>
 
             {/* Main Content */}
-            <main className="flex-grow relative">
-                {/* Visual Noise Overlay */}
-                <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none z-[-1]"></div>
+            <main className="flex-grow">
                 <Outlet />
             </main>
 
             {/* Footer */}
-            <footer className="bg-slate-950 border-t border-slate-900 pt-20 pb-10 relative z-10 overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-500/10 blur-[120px] rounded-full -z-10"></div>
-                <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500/10 blur-[130px] rounded-full -z-10"></div>
-
+            <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-                        {/* Brand Column */}
-                        <div className="space-y-6">
-                            <Link to="/" className="flex items-center space-x-2">
-                                <Sun className="w-8 h-8 text-primary-400" />
-                                <span className="text-2xl font-black bg-gradient-to-r from-primary-400 to-blue-400 bg-clip-text text-transparent">
-                                    SOLARAI
-                                </span>
-                            </Link>
-                            <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-                                Decentralized AI-powered solar inspection platform for a sustainable future. Empowering homeowners and utilities with vision intelligence.
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                        <div className="space-y-4">
+                            <h3 className="text-2xl font-black text-[#003366]">SOLARAI</h3>
+                            <p className="text-gray-500 text-sm leading-relaxed">
+                                Empowering a sustainable future through advanced AI inspection and clean energy diagnostics.
                             </p>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Navigation</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><Link to="/" className="hover:text-blue-600">Home</Link></li>
+                                <li><Link to="/about" className="hover:text-blue-600">About Us</Link></li>
+                                <li><Link to="/inspection" className="hover:text-blue-600">Our AI</Link></li>
+                                <li><Link to="/contact" className="hover:text-blue-600">Contact</Link></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Legal</h4>
+                            <ul className="space-y-2 text-sm text-gray-600">
+                                <li><a href="#" className="hover:text-blue-600">Privacy Policy</a></li>
+                                <li><a href="#" className="hover:text-blue-600">Terms of Service</a></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-gray-900 mb-4">Connect</h4>
                             <div className="flex space-x-4">
                                 {[Facebook, Twitter, Linkedin, Github].map((Icon, i) => (
-                                    <a key={i} href="#" className="p-2 bg-slate-900 border border-slate-800 rounded-lg text-gray-400 hover:text-primary-400 hover:border-primary-400/50 transition-all">
+                                    <a key={i} href="#" className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-blue-600 hover:text-white transition-all">
                                         <Icon className="w-5 h-5" />
                                     </a>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Quick Links */}
-                        <div>
-                            <h4 className="text-white font-bold mb-6">Quick Navigation</h4>
-                            <ul className="space-y-4">
-                                {navLinks.map((link) => (
-                                    <li key={link.name}>
-                                        <Link to={link.path} className="text-gray-400 hover:text-white transition-colors text-sm flex items-center group">
-                                            <span className="w-0 group-hover:w-2 h-0.5 bg-primary-400 mr-0 group-hover:mr-2 transition-all"></span>
-                                            {link.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Resources */}
-                        <div>
-                            <h4 className="text-white font-bold mb-6">Resources</h4>
-                            <ul className="space-y-4">
-                                {['Documentation', 'API Reference', 'Solar Benefits', 'Case Studies', 'Community'].map((item) => (
-                                    <li key={item}>
-                                        <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm flex items-center group">
-                                            <span className="w-0 group-hover:w-2 h-0.5 bg-blue-400 mr-0 group-hover:mr-2 transition-all"></span>
-                                            {item}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Contact Info */}
-                        <div className="space-y-6">
-                            <h4 className="text-white font-bold mb-6">Get In Touch</h4>
-                            <div className="space-y-4">
-                                <div className="flex items-start space-x-3 text-sm text-gray-400">
-                                    <MapPin className="w-5 h-5 text-primary-400 mt-0.5" />
-                                    <span>Social Prachar, Satyabama Complex, 301, KPHB Main Rd, Opposite Sai Baba Temple, Hyderabad, 500085</span>
-                                </div>
-                                <div className="flex items-center space-x-3 text-sm text-gray-400">
-                                    <Mail className="w-5 h-5 text-primary-400" />
-                                    <span>hello@solarai.com</span>
-                                </div>
-                                <div className="flex items-center space-x-3 text-sm text-gray-400">
-                                    <Phone className="w-5 h-5 text-primary-400" />
-                                    <span>+91 800-456-7890</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-
-                    <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                        <p className="text-gray-500 text-xs text-center md:text-left leading-relaxed">
-                            © 2026 SolarAI Inspection Platform. Built for Advanced Solar Diagnostics.
-                        </p>
-                        <div className="flex space-x-6 text-xs text-gray-600">
-                            <a href="#" className="hover:text-gray-400 transition-colors">Privacy Policy</a>
-                            <a href="#" className="hover:text-gray-400 transition-colors">Terms of Service</a>
-                            <a href="#" className="hover:text-gray-400 transition-colors">Cookie Policy</a>
-                        </div>
+                    <div className="pt-8 border-t border-gray-100 text-center text-gray-400 text-xs">
+                        &copy; 2026 SolarAI. All rights reserved.
                     </div>
                 </div>
             </footer>

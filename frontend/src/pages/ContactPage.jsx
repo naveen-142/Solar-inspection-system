@@ -1,212 +1,212 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, MessageSquare, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, Lightbulb } from 'lucide-react';
 import axios from 'axios';
 
-const BACKEND_URL = "https://solar-inspection-system-backend-2.onrender.com";
+const BACKEND_URL = "http://localhost:8000";
 
 const ContactPage = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        subject: '',
         message: ''
     });
-    const [status, setStatus] = useState('idle'); // idle, loading, success, error
-    const [errorMsg, setErrorMsg] = useState('');
+    const [status, setStatus] = useState('idle');
+    const [submitted, setSubmitted] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('loading');
-        setErrorMsg('');
-
+        setErrorMessage('');
         try {
-            const response = await axios.post(`${BACKEND_URL}/contact`, formData);
+            await axios.post(`${BACKEND_URL}/contact`, { ...formData, subject: "Contact Form Inquiry" });
             setStatus('success');
-            setFormData({ name: '', email: '', subject: '', message: '' });
+            setSubmitted(true);
+            setFormData({ name: '', email: '', message: '' });
         } catch (err) {
             console.error(err);
             setStatus('error');
-            setErrorMsg(err.response?.data?.detail || 'Failed to send message. Please try again later.');
+            if (err.response?.status === 400) {
+                setErrorMessage('Invalid email address. Please check and try again.');
+            } else if (err.response?.status === 500) {
+                setErrorMessage('Server error. Please try again later.');
+            } else if (err.message === 'Network Error') {
+                setErrorMessage('Network error. Please check your connection.');
+            } else {
+                setErrorMessage('Failed to send message. Please try again.');
+            }
         }
     };
 
+    const resetForm = () => {
+        setSubmitted(false);
+        setStatus('idle');
+        setErrorMessage('');
+    };
+
     return (
-        <div className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-            <header className="mb-20 text-center">
-                <span className="inline-block px-4 py-1.5 bg-primary-500/10 text-primary-400 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-                    Get in Touch
-                </span>
-                <h1 className="text-4xl md:text-5xl font-black text-white mb-6">
-                    Connect with our <span className="text-primary-400">Energy Experts</span>
-                </h1>
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                    Have questions about AI inspection or need a custom solution for your solar farm? Our team is ready to assist.
-                </p>
-            </header>
+        <div className="min-h-screen bg-gray-50 font-sans">
+            {/* Green Header Banner */}
+            <div className="bg-[#279d63] pt-32 pb-24 text-center text-white relative">
+                <h1 className="text-5xl md:text-6xl font-black mb-4">Contact Us</h1>
+                <p className="text-xl md:text-2xl font-medium">Let’s connect and build a cleaner energy future.</p>
 
-            <div className="grid lg:grid-cols-3 gap-12">
-                {/* Contact Info */}
-                <div className="space-y-8">
-                    <div className="bg-slate-800/40 p-8 rounded-3xl border border-slate-700/50">
-                        <h3 className="text-xl font-bold text-white mb-8">Contact Information</h3>
-                        <div className="space-y-6">
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-primary-500/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-primary-500/20">
-                                    <Mail className="w-5 h-5 text-primary-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-white">Email Us</p>
-                                    <p className="text-sm text-gray-400 mt-1">vnaveen83794@gmail.com</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-blue-500/20">
-                                    <Phone className="w-5 h-5 text-blue-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-white">Call Support</p>
-                                    <p className="text-sm text-gray-400 mt-1">+91 800-456-7890</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center flex-shrink-0 border border-indigo-500/20">
-                                    <MapPin className="w-5 h-5 text-indigo-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-white">Visit Office</p>
-                                    <p className="text-sm text-gray-400 mt-1">Social Prachar, Satyabama Complex, 301, KPHB Hyderabad, 500085</p>
-                                </div>
-                            </div>
+                {/* Overlapping Icon */}
+                <div className="absolute left-1/2 -bottom-16 transform -translate-x-1/2">
+                    <div className="w-32 h-32 bg-white rounded-[2rem] shadow-xl flex items-center justify-center p-2">
+                        <div className="w-full h-full bg-gradient-to-br from-green-100 to-green-50 rounded-[1.5rem] flex items-center justify-center border border-green-200">
+                            <Lightbulb className="w-20 h-20 text-[#279d63]" />
                         </div>
-                    </div>
-
-                    <div className="bg-slate-800/40 p-8 rounded-3xl border border-slate-700/50">
-                        <h3 className="text-xl font-bold text-white mb-4">Connect Socially</h3>
-                        <p className="text-sm text-gray-400 mb-6">Stay updated with our latest AI breakthroughs and solar industry news.</p>
-                        <div className="flex gap-4">
-                            {['Twitter', 'LinkedIn', 'YouTube'].map(social => (
-                                <a key={social} href="#" className="px-4 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:border-primary-400 transition-all">
-                                    {social}
-                                </a>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Form */}
-                <div className="lg:col-span-2">
-                    <div className="bg-slate-800/40 p-8 md:p-12 rounded-3xl border border-slate-700/50">
-                        {status === 'success' ? (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="py-12 text-center"
-                            >
-                                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/20">
-                                    <CheckCircle className="w-10 h-10 text-green-400" />
-                                </div>
-                                <h2 className="text-3xl font-bold text-white mb-4">Message Sent!</h2>
-                                <p className="text-gray-400 mb-8 max-w-sm mx-auto">
-                                    Thank you for reaching out. One of our solar experts will get back to you within 24 hours.
-                                </p>
-                                <button
-                                    onClick={() => setStatus('idle')}
-                                    className="px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-xl transition-all"
-                                >
-                                    Send Another Message
-                                </button>
-                            </motion.div>
-                        ) : (
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid sm:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-gray-400 ml-1">Full Name</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            placeholder="John Doe"
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-gray-400 ml-1">Email Address</label>
-                                        <input
-                                            required
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            placeholder="john@company.com"
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-400 ml-1">Subject</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        value={formData.subject}
-                                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                        placeholder="Partnership Inquiry / Technical Support"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-gray-400 ml-1">Message</label>
-                                    <textarea
-                                        required
-                                        rows="5"
-                                        value={formData.message}
-                                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                        placeholder="How can we help your solar operations?"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 text-white focus:ring-2 focus:ring-primary-500 outline-none transition-all resize-none"
-                                    ></textarea>
-                                </div>
-
-                                {status === 'error' && (
-                                    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex items-center gap-3 text-red-400 text-sm">
-                                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                                        {errorMsg}
-                                    </div>
-                                )}
-
-                                <button
-                                    disabled={status === 'loading'}
-                                    type="submit"
-                                    className="w-full flex items-center justify-center py-4 px-6 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 transition-all active:scale-[0.98] disabled:opacity-70"
-                                >
-                                    {status === 'loading' ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin mr-3" /> Sending Inquiry...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Send className="w-5 h-5 mr-3" /> Send Message
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Google Maps Integration */}
-            <div className="mt-20 h-[500px] w-full bg-slate-800/40 rounded-[2.5rem] border border-slate-700/50 overflow-hidden shadow-2xl relative">
-                <iframe
-                    title="Social Prachar Hyderabad"
-                    src="https://www.google.com/maps?q=Social%20Prachar,%20satyabama%20complex,%20301,%20KPHB%20Main%20Rd,%20opposite%20sai%20baba%20temple,%20Venkat%20Nagar,%20Bhagya%20Nagar%20Colony,%20Venkat%20Nagar%20Colony,%20Hyderabad,%20Telangana%20500085&output=embed"
-                    className="w-full h-full border-0 grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-700"
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
-                <div className="absolute top-6 left-6 p-4 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl pointer-events-none">
-                    <p className="text-white font-black text-sm">HEADQUARTERS</p>
-                    <p className="text-primary-400 text-[10px] font-bold uppercase tracking-widest mt-1">KPHB, Hyderabad</p>
+            <div className="max-w-7xl mx-auto px-4 pt-32 pb-20">
+                <div className="text-center mb-16">
+                    <h2 className="text-5xl font-black text-[#279d63] mb-4">Get In Touch</h2>
+                    <p className="text-gray-500 font-bold tracking-widest uppercase text-sm">POWERING A SUSTAINABLE FUTURE FOR INDUSTRIES WORLDWIDE.</p>
+                </div>
+
+                <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden grid lg:grid-cols-2">
+                    {/* Left Side: Form / Success Message */}
+                    <div className="p-12 md:p-16">
+                        {!submitted ? (
+                            <>
+                                <h3 className="text-2xl font-bold text-[#279d63] mb-8">Send us a message</h3>
+
+                                {/* Error Message */}
+                                {errorMessage && (
+                                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                                        <svg className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                            <p className="text-red-700 font-semibold text-sm">{errorMessage}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2 text-sm">Your Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#279d63] focus:ring-1 focus:ring-[#279d63] transition-all bg-gray-50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2 text-sm">Your Email</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#279d63] focus:ring-1 focus:ring-[#279d63] transition-all bg-gray-50"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-bold mb-2 text-sm">Message</label>
+                                        <textarea
+                                            required
+                                            rows="5"
+                                            value={formData.message}
+                                            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-[#279d63] focus:ring-1 focus:ring-[#279d63] transition-all bg-gray-50 resize-none"
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={status === 'loading'}
+                                        className="w-full bg-[#279d63] hover:bg-[#208552] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-200 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    >
+                                        {status === 'loading' ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                Sending...
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <Send className="w-4 h-4" />
+                                                Send Message
+                                            </span>
+                                        )}
+                                    </button>
+                                </form>
+                            </>
+                        ) : (
+                            <div className="text-center py-12">
+                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-10 h-10 text-[#279d63]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold text-[#279d63] mb-3">Message Delivered Successfully!</h3>
+                                <p className="text-gray-600 mb-8">Thank you for contacting us. We'll get back to you soon.</p>
+                                <button
+                                    onClick={resetForm}
+                                    className="px-8 py-3 bg-[#279d63] hover:bg-[#208552] text-white font-bold rounded-xl shadow-lg shadow-green-200 transition-all active:scale-[0.98]"
+                                >
+                                    Back to Form
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right Side: Info & Map */}
+                    <div className="bg-gray-50 p-12 md:p-16 border-l border-gray-100">
+                        <h3 className="text-2xl font-bold text-[#279d63] mb-8">Our Office</h3>
+
+                        <div className="space-y-6 mb-12">
+                            <div className="flex items-start gap-4 text-gray-600">
+                                <Clock className="w-5 h-5 text-[#279d63] mt-1" />
+                                <p className="text-sm leading-relaxed">
+                                    <span className="font-bold text-gray-800">Mon–Fri:</span> 9 AM – 6 PM | <span className="font-bold text-gray-800">Sat:</span> 10 AM – 4 PM
+                                </p>
+                            </div>
+                            <div className="flex items-start gap-4 text-gray-600">
+                                <Phone className="w-5 h-5 text-[#279d63] mt-1" />
+                                <p className="text-sm font-bold text-gray-800">+91-9876543210</p>
+                            </div>
+                            <div className="flex items-start gap-4 text-gray-600">
+                                <Mail className="w-5 h-5 text-[#279d63] mt-1" />
+                                <p className="text-sm text-gray-800">support@localbusiness.com</p>
+                            </div>
+                            <div className="flex items-start gap-4 text-gray-600">
+                                <MapPin className="w-6 h-6 text-[#279d63] mt-1" />
+                                <p className="text-sm leading-relaxed text-gray-800">
+                                    <strong>Social Prachar</strong><br />
+                                    satyabama complex, 301, KPHB Main Rd, opposite sai baba temple, Venkat Nagar, Bhagya Nagar Colony, Venkat Nagar Colony, Hyderabad, Telangana 500085
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Map Area */}
+                        <div className="w-full h-64 bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-md relative group">
+                            <iframe
+                                title="Office Location - Social Prachar"
+                                src="https://maps.google.com/maps?q=Social+Prachar,+satyabama+complex,+301,+KPHB+Main+Rd,+Hyderabad&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                                className="w-full h-full border-0 grayscale hover:grayscale-0 transition-all duration-700"
+                                allowFullScreen=""
+                                loading="lazy"
+                            ></iframe>
+                        </div>
+                        <div className="mt-6 text-center">
+                            <a
+                                href="https://www.google.com/maps/dir/?api=1&destination=Social+Prachar,+satyabama+complex,+301,+KPHB+Main+Rd,+Hyderabad,+Telangana+500085"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center text-[#279d63] font-bold border border-[#279d63] px-6 py-3 rounded-xl hover:bg-[#279d63] hover:text-white transition-all text-sm"
+                            >
+                                <MapPin className="w-4 h-4 mr-2" /> Get Directions
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
